@@ -1,0 +1,125 @@
+<html>
+	<head>
+		<title> test 8</title>
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	</head>
+	<body>
+		<div id="root"></div>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.6.0/prop-types.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.6.0/prop-types.min.js"></script>
+		<script type="text/babel">
+		class Greeting extends React.Component { 
+			constructor(props){
+				super(props);
+				this.state = {
+					rates :{},
+					base:''
+				}
+				this.getCountryCode = this._getCountryCode.bind(this)
+				this.getCurrencies = this._getCurrencies.bind(this)
+				this.getRates = this._getRates.bind(this)
+			}
+		
+			componentDidMount(){
+				this.getCountryCode()
+			}
+			
+			_getCountryCode = () => {
+	  			const freegoUrl = 'http://freegeoip.net/json/';
+	  			fetch(freegoUrl)
+	  			.then((resp) => resp.json())
+	  			.then((data) => {
+	  			    if ( data != null){
+						const countryCode = data.country_code
+						this.getCurrencies(countryCode)
+					}
+	  			    })
+	  			  .catch((error) => {
+	  			    console.log(JSON.stringify(error));
+	  			  });
+			}
+			
+			_getCurrencies = (countryCode) =>{
+	  			const restUrl = `https://restcountries.eu/rest/v2/alpha/${countryCode}`;
+	  			fetch(restUrl)
+	  			.then((resp) => resp.json())
+	  			.then((data2) => {
+	  			    if ( data2 != null){
+						const currencies = data2.currencies[0].code
+			  			this.getRates(currencies)
+					}
+	  			    })
+	  			  .catch((error) => {
+	  			    console.log(JSON.stringify(error));
+	  			  });
+			}
+			
+			_getRates = (currencies) => {
+	  			const restUrl = `http://api.fixer.io/latest?base=${currencies}`;
+	  			fetch(restUrl)
+	  			.then((resp) => resp.json())
+	  			.then((data3) => {
+	  			    if ( data3 != null){
+						console.log('data3', data3)
+						const rate = data3.rates
+						const base = data3.base
+						this.setState({
+							rates: rate,
+							base: base
+						})
+						
+					}
+	  			    })
+	  			  .catch((error) => {
+	  			    console.log(JSON.stringify(error));
+	  			  });
+			}
+			
+			
+				  
+		    render() {
+				const { rates, base } = this.state;
+				console.log('rates', rates)
+		        return (
+					<div className='container'>
+						<h3>List all of current rates based on your current location :</h3>
+					
+				
+						<table className="table table-striped" style={{marginTop:'20px'}}>
+    						<thead>
+    							<tr>
+									<th>My Currencies</th>
+        							<th>Againts Currencies</th>
+        							<th>Current Rates</th>
+     			   				</tr>
+    						</thead>
+    						<tbody>
+					
+							{rates != null && Object.entries(rates).map(([key, value]) => 
+							<tr>
+								<td>{base}</td>
+								<td>{key}</td>
+								<td>{value}</td>
+							</tr>
+					
+							)}
+    						</tbody>
+  						</table>
+							
+					</div>
+				);
+		    }
+		}
+		ReactDOM.render(
+		    <Greeting />,
+		    document.getElementById('root')
+		);
+		</script>
+
+	</body>
+	
+</html>
